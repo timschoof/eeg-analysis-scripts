@@ -1,4 +1,4 @@
-function eeglab_ABR(fileDir, listener,Active, Reference, Lcut_off, Hcut_off, artifact,epoch_dur, prestim)
+function eeglab_ABR(fileDir, listener,Active, Reference, Lcut_off, Hcut_off, artefact,epoch_dur, prestim)
 % Click ABR analysis script
 % Only reads in two channels
 % Assumes data is organised in folders for each participant separately.
@@ -10,6 +10,8 @@ function eeglab_ABR(fileDir, listener,Active, Reference, Lcut_off, Hcut_off, art
 % Reference - reference electrode (EXG2, EXG3, or EXG4)
 % Lcut_off - lower bound bandpass filter
 % Hcut_off - upper bound bandpass filter
+% artefact - epochs containing values exceeding +/- this value (in uV) are
+% considered artefacts and removed from the set of epochs
 % epoch_dur - duration (in ms) of epoch
 % prestim - duration of the baseline (i.e. end time (in ms) of pre-stim)
 
@@ -74,7 +76,7 @@ if ~WriteHeader
 end
 
 % add path to eeglab
-addpath('eeglab12_1_1b')
+addpath('eeglab14_1_1b')
 
 %% loop through all the files in the directory
 for i=1:nFiles
@@ -149,7 +151,7 @@ for i=1:nFiles
     % (parameter: artifact)
     countr = 1;
     for nn = 1:(totalsweeps)
-        if (max(epoch_corrected(nn,:))>artifact) || (min(epoch_corrected(nn,:))< -1*artifact)
+        if (max(epoch_corrected(nn,:))>artefact) || (min(epoch_corrected(nn,:))< -1*artefact)
             rm_index(countr) = nn;
             countr = countr+1;
         end
@@ -178,10 +180,10 @@ for i=1:nFiles
     ylabel('uV')
     set(p, 'Color', 'Black');
     % save figure
-    saveas(gcf,['', OutputDir, '\', name, '_average', ''],'fig');
+    saveas(gcf,['', OutputDir, '\', name,'_',Active, '_vs_',Reference, '_average', ''],'fig');
     
     % save averaged EEG mat files
-    save(['', OutputDir, '\', name, '_average.mat', ''],'avg');
+    save(['', OutputDir, '\', name, '_',Active, '_vs_',Reference, '_average.mat', ''],'avg');
     
     % print out relevant information to csv file
     fTrackOut = fopen(OutFile, 'at');
