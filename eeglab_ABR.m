@@ -1,7 +1,7 @@
-function eeglab_ABR(fileDir, listener,Active, Reference, Lcut_off, Hcut_off, artifact,s_epoch, e_epoch, s_baseline, e_baseline)
-% This script reads in 
-% two channels
-% assumes data is organised in folders for each participant separately
+function eeglab_ABR(fileDir, listener,Active, Reference, Lcut_off, Hcut_off, artifact,epoch_dur, prestim)
+% Click ABR analysis script
+% Only reads in two channels
+% Assumes data is organised in folders for each participant separately.
 
 
 %% parameters
@@ -10,10 +10,8 @@ function eeglab_ABR(fileDir, listener,Active, Reference, Lcut_off, Hcut_off, art
 % Reference - reference electrode (EXG2, EXG3, or EXG4)
 % Lcut_off - lower bound bandpass filter
 % Hcut_off - upper bound bandpass filter
-% s_epoch - start time (in ms) of epoch
-% e_epoch - end time (in ms) of epoch
-% s_baseline - start time (in ms) of pre-stim
-% e_baseline - end time (in ms) of pre-stim
+% epoch_dur - duration (in ms) of epoch
+% prestim - duration of the baseline (i.e. end time (in ms) of pre-stim)
 
 %% Version
 % Version 1.0 - June 2012
@@ -30,6 +28,8 @@ function eeglab_ABR(fileDir, listener,Active, Reference, Lcut_off, Hcut_off, art
 %     Still writes output files into eeglab folder
 %
 % Version 2 - August 2017
+%   Script no longer relies heavily on eeglab - only uses it to read in BDF
+%   file and re-reference the data.
 %   MATLAB version: R2016a
 %   EEGLAB version: eeglab14_1_1b
 %
@@ -38,8 +38,21 @@ function eeglab_ABR(fileDir, listener,Active, Reference, Lcut_off, Hcut_off, art
 
 %% some starting values
 order = 2; % butterworth filter order
+tube_delay = 1; % time it takes for sound to travel along the tubing of the insert earphones (in ms), this is added to the prestim
+trigger_artefact_window = 2; % period affected by trigger artefact (in ms), this is excluded from the baseline and epoch
 
-% specify file directory - assumes data for every participant is in a
+%% adjust prestim and epoch parameters taking tube delay and trigger
+% artefact window into account
+prestim = (prestim + tube_delay) - trigger_artefact_window; % compute prestim duration
+s_epoch = trigger_artefact_window; % compute start time of epoch (which includes baseline / prestim, but not the trigger artefact)
+e_epoch = s_epoch + prestim + epoch_dur; % compute end time of epoch
+
+% convert epoch start and end times to seconds
+s_epoch_s = s_epoch/1000;
+e_epoch_s = e_epoch/1000;
+prestim_s = prestim/1000;
+
+%% specify file directory - assumes data for every participant is in a
 % separate subfolder within the specified file directory
 fileDirectory = [fileDir '\' listener];
 % get a list of BDF files
@@ -59,6 +72,9 @@ if ~WriteHeader
     fprintf(fTrackOut, 'listener,response,accepted,rejected');
     fclose(fTrackOut);
 end
+
+% add path to eeglab
+addpath('eeglab12_1_1b')
 
 %% loop through all the files in the directory
 for i=1:nFiles
@@ -115,25 +131,22 @@ for i=1:nFiles
     EEG.data = butter_filtfilt(EEG.data, Lcut_off, Hcut_off, order);
     
     % epoch
-    % convert epoch start and end times to seconds
-    s_epoch_s = s_epoch/1000;
-    e_epoch_s = e_epoch/1000;
-    % epoch
     totalsweeps = length(EEG.event)-2;
     epoch = zeros((totalsweeps),round((e_epoch_s-s_epoch_s)*EEG.srate));
     for n = 1:totalsweeps
-        epoch(n,:) = EEG.data(EEG.event(n+1).latency:EEG.event(n+1).latency+round((e_epoch_s-s_epoch_s)*EEG.srate)-1);
-    end
-         
-    % baseline correction
-    epoch_corrected = zeros((totalsweeps),length(epoch(1,:))-round((e_baseline/1000)*EEG.srate)+1);
-    for m = 1:totalsweeps
-        sweep = epoch(m,:);
-        baseline = mean(sweep(round((s_baseline/1000)*EEG.srate):round((e_baseline/1000)*EEG.srate)));
-        epoch_corrected(m,:) = sweep(round((e_baseline/1000)*EEG.srate):length(sweep))-baseline;
+        epoch(n,:) = EEG.data(EEG.event(n+1).latency+round(s_epoch_s*EEG.srate):EEG.event(n+1).latency+round(e_epoch_s*EEG.srate)-1);
     end
     
-    % artifact rejection
+    % baseline correction
+    epoch_corrected = zeros((totalsweeps),length(epoch(1,:))-round(prestim_s*EEG.srate)+1);
+    for m = 1:totalsweeps
+        sweep = epoch(m,:);
+        baseline = mean(sweep(1:round(prestim_s*EEG.srate)));
+        epoch_corrected(m,:) = sweep(round(prestim_s*EEG.srate):length(sweep))-baseline;
+    end
+    
+    % artifact rejection: remove epochs that exceed +/- a given threshold
+    % (parameter: artifact)
     countr = 1;
     for nn = 1:(totalsweeps)
         if (max(epoch_corrected(nn,:))>artifact) || (min(epoch_corrected(nn,:))< -1*artifact)
@@ -143,7 +156,7 @@ for i=1:nFiles
     end
     % remove trials
     if exist('rm_index')
-        epoch([rm_index],:) = [];
+        epoch_corrected([rm_index],:) = [];
         rejected = length(rm_index);
         accepted = totalsweeps - rejected;
     else
@@ -151,9 +164,9 @@ for i=1:nFiles
         accepted = totalsweeps;
     end
     
-    % average across draws
+    % average across epochs
     avg = mean(epoch_corrected,1);
-
+    
     % plot averaged response
     figure('color','white')
     s = (length(avg)/EEG.srate)*1000;
@@ -168,8 +181,6 @@ for i=1:nFiles
     saveas(gcf,['', OutputDir, '\', name, '_average', ''],'fig');
     
     % save averaged EEG mat files
-    % select correct channel
-    % write to txt and avg
     save(['', OutputDir, '\', name, '_average.mat', ''],'avg');
     
     % print out relevant information to csv file
