@@ -10,3 +10,5 @@ eeglab_ABR(resultsDir,listener,'EXG3','EXG4',100,3000,25,10,5)
 
 % vertical configuration - for wave V
 eeglab_ABR(resultsDir,listener,'EXG1','EXG3',100,3000,25,10,5)
+
+% EFR
