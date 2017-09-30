@@ -6,9 +6,11 @@ function goHHL(listener)
 resultsDir = 'P:\HHL\Results\ABR pilot';
 
 % horizontal configuration - for wave I
-eeglab_ABR(resultsDir,listener,'EXG3','EXG4',100,3000,25,10,5)
+% ABR_analysis(fileDir, listener,Active, Reference,epoch_dur, prestim, Lcut_off, Hcut_off, artefact)
+ABR_analysis(resultsDir, listener,'EXG3','EXG4',10,5)
 
 % vertical configuration - for wave V
-eeglab_ABR(resultsDir,listener,'EXG1','EXG3',100,3000,25,10,5)
+ABR_analysis(resultsDir, listener,'EXG1','EXG3',10,5)
 
 % EFR
+% RapidEFR_analysis(fileDir, listener, trigTiming, replacement, totalSweeps, F0, F1, F2, F3, F4, draws, repeats, chunks, s_epoch, e_epoch, prestim)

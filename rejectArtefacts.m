@@ -13,8 +13,8 @@ end
 if exist('rm_index')
     data([rm_index],:) = [];
     rejected = length(rm_index);
-    accepted = totalsweeps - rejected;
+    accepted = nTrials - rejected;
 else
     rejected = 0;
-    accepted = totalsweeps;
+    accepted = nTrials;
 end

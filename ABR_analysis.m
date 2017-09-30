@@ -1,4 +1,4 @@
-function ABR_analysis(fileDir, listener,Active, Reference, Lcut_off, Hcut_off, artefact,epoch_dur, prestim)
+function ABR_analysis(fileDir, listener,Active, Reference,epoch_dur, prestim, Lcut_off, Hcut_off, artefact)
 % Click ABR analysis script
 % Only reads in two channels.
 % Assumes data is organised in folders for each participant separately.
@@ -7,12 +7,12 @@ function ABR_analysis(fileDir, listener,Active, Reference, Lcut_off, Hcut_off, a
 % fileDirectory - folder with files to be processed
 % Active - active electrode (EXG1, EXG2, or EXG3)
 % Reference - reference electrode (EXG2, EXG3, or EXG4)
-% Lcut_off - lower bound bandpass filter
-% Hcut_off - upper bound bandpass filter
-% artefact - epochs containing values exceeding +/- this value (in uV) are
 % considered artefacts and removed from the set of epochs
 % epoch_dur - duration (in ms) of epoch
 % prestim - duration of the baseline (i.e. end time (in ms) of pre-stim)
+% Lcut_off - lower bound bandpass filter
+% Hcut_off - upper bound bandpass filter
+% artefact - epochs containing values exceeding +/- this value (in uV) are
 
 %% Version
 % Version 1.0 - June 2012
@@ -34,6 +34,7 @@ function ABR_analysis(fileDir, listener,Active, Reference, Lcut_off, Hcut_off, a
 %
 % Dependencies:
 %  * eeglab
+%  * baseline_correction.m
 %  * BIOSEMI_channel.m
 %  * create_triggers.m
 %  * butter_filtfilt.m
@@ -51,6 +52,17 @@ function ABR_analysis(fileDir, listener,Active, Reference, Lcut_off, Hcut_off, a
 order = 2; % butterworth filter order
 tube_delay = 1; % time it takes for sound to travel along the tubing of the insert earphones (in ms), this is added to the prestim
 trigger_artefact_window = 2; % period affected by trigger artefact (in ms), this is excluded from the baseline and epoch
+
+% if certain arguments are not specified, set them to their default value
+if nargin<9
+    artefact = 25;
+end
+if nargin<8
+    Hcut_off = 3000;
+end
+if nargin<7
+    Lcut_off = 100;
+end
 
 %% adjust prestim and epoch parameters taking tube delay and trigger
 % artefact window into account
@@ -106,6 +118,7 @@ for i=1:nFiles(1)
     EEG.data = butter_filtfilt(EEG.data, Lcut_off, Hcut_off, order);
     
     % epoch (sampling without replacement)
+    totalsweeps = length(EEG.event)-2;
     epoch = epochEEG(EEG,totalsweeps,s_epoch_s,e_epoch_s,'without');
     
     % baseline correction

@@ -16,7 +16,7 @@ if length(EEGdata.event) < nSweeps
     nSweeps = length(EEGdata.event);
 end
 
-sweepLength = round((e_epoch_s-s_epoch_s)*EEG.srate);
+sweepLength = round((e_epoch_s-s_epoch_s)*EEGdata.srate);
 epoch=zeros((nSweeps),sweepLength);
 
 %% loop through the number of sweeps to be epoched
