@@ -18,6 +18,8 @@ elseif strcmp(Active, 'EXG2')
     Act = 34;
 elseif strcmp(Active, 'EXG3')
     Act = 35;
+elseif strcmp(Active, 'A32')
+    Act = 32;
 else
     error('ERROR: Your active electrode should be EXG1, EXG2, or EXG3')
 end
@@ -31,8 +33,10 @@ elseif strcmp(Reference, 'EXG3')
     Ref = 35;
 elseif strcmp(Reference, 'EXG4')
     Ref = 36;
+elseif strcmp(Reference, 'EXG5')
+    Ref = 37;
 else
-    error('ERROR: Your reference electrode should be EXG2, EXG3, or EXG4')
+    error('ERROR: Your reference electrode should be EXG1, EXG2, EXG3, EXG4, or EXG5')
 end
 
 %% recodes reference channel for re-referencing

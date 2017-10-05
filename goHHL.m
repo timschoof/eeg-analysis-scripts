@@ -13,4 +13,5 @@ ABR_analysis(resultsDir, listener,'EXG3','EXG4',10,5)
 ABR_analysis(resultsDir, listener,'EXG1','EXG3',10,5)
 
 % EFR
-% RapidEFR_analysis(fileDir, listener, trigTiming, replacement, totalSweeps, F0, F1, F2, F3, F4, draws, repeats, chunks, s_epoch, e_epoch, prestim)
+% RapidEFR_analysis(fileDir, listener, Active, Reference, trigTiming, replacement, totalSweeps, F0, F1, F2, F3, F4, draws, repeats, chunks, s_epoch, e_epoch, prestim)
+RapidEFR_analysis('P:\HHL\Results\EFR pilot', 'AC', 'EXG1', 'EXG2','phaselocked', 'without', 4500, 128)

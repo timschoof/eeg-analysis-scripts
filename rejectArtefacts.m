@@ -1,5 +1,10 @@
 function [data, accepted, rejected] = rejectArtefacts(data, nTrials,artefact)
 
+% make sure the data is long enough
+if length(data) < nTrials
+    nTrials = length(data);
+end
+
 % create index of trials to be removed
 countr = 1;
 for nn = 1:nTrials

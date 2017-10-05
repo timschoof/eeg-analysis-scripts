@@ -1,4 +1,4 @@
-function [triggerField ] = create_triggers(EEGdata, nTrigs, trigTiming, startSweep, endSweep, s_epoch_s,e_epoch_s, prestim)
+function [triggerField, nTrigs] = create_triggers(EEGdata, nTrigs, trigTiming, startSweep, endSweep, s_epoch_s,e_epoch_s, prestim)
 %
 % The rapid FFR is typically recorded using only a single trigger at the start
 % (and possibly another one at the end) of the recording. This is to avoid
@@ -33,8 +33,8 @@ function [triggerField ] = create_triggers(EEGdata, nTrigs, trigTiming, startSwe
 s_trig_interval = round((e_epoch_s-s_epoch_s)*EEGdata.srate);
             
 % determine timing of first and last trigger point
-startTrig = EEGdata.event(1,2).latency + round((prestim)*EEGdata.srate) + ((startSweep+2)*s_trig_interval); % don't look at first 2 nReps
-endTrig = EEGdata.event(1,2).latency + round((prestim)*EEGdata.srate) + ((endSweep-2)*s_trig_interval); % don't look at final nRep
+startTrig = EEGdata.event(1,2).latency + round((prestim)*EEGdata.srate) + ((startSweep+1)*s_trig_interval); % don't look at first 2 nReps
+endTrig = EEGdata.event(1,2).latency + round((prestim)*EEGdata.srate) + ((endSweep-1)*s_trig_interval); % don't look at final nRep
 
 if strcmp(trigTiming,'random')
     % create randomly placed triggers (this likely results in overlapping
@@ -45,10 +45,6 @@ elseif strcmp(trigTiming,'phaselocked')
     % create triggers phaselocked to the response (i.e. evenly spaced at a
     % given interval)
     triggers = [startTrig:s_trig_interval:endTrig];
-    % make sure not too many triggers are created
-    if length(triggers) < nTrigs
-        triggers = triggers(1:nTrigs);
-    end
 end
 
 %% replace trigger field
@@ -58,7 +54,7 @@ for i = 1:length(triggers)
         EEGdata = rmfield(EEGdata, 'event'); 
     end
     % create new EEG.event field with the newly generated trigger locations
-    EEGdata.event(1,i) = struct('type',255,'latency',r(i),'urevent',i);
+    EEGdata.event(1,i) = struct('type',255,'latency',triggers(i),'urevent',i);
 end
 
 % extract trigger field to pass to main function

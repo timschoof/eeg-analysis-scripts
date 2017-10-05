@@ -1,4 +1,4 @@
-function RapidEFR_analysis(fileDir, listener, trigTiming, replacement, totalSweeps, F0, F1, F2, F3, F4, draws, repeats, chunks, s_epoch, e_epoch, prestim)
+function RapidEFR_analysis(fileDir, listener, Active, Reference,trigTiming, replacement, totalSweeps, F0, F1, F2, F3, F4, Lcut_off, Hcut_off, draws, repeats, chunks, s_epoch, e_epoch, prestim)
 % EFR analysis script
 %
 % The script only reads in two channels. It assumes that the EEG data file only has a
@@ -29,21 +29,25 @@ function RapidEFR_analysis(fileDir, listener, trigTiming, replacement, totalSwee
 %% Parameters
 % fileDir = file directory with .bdf files
 % listener = participant id
+% Active - active electrode (EXG1, EXG2, or EXG3)
+% Reference - reference electrode (EXG2, EXG3, or EXG4)
 % trigTiming = the timing or location of the triggers: 'phaselocked' to the stimulus 
 %   F0 cycles (to compute EFR or signal's response) or 'random' (to compute
 %   noise floor)
 % replacement = sampling 'with' or 'without' replacement
+% totalSweeps = number of sweeps in the response (e.g. 7500)
+% F0, F1, F2, F3, F4 = frequencies for which spectral magnitude is to be
+%   computed 
+% Lcut_off - lower bound bandpass filter
+% Hcut_off - upper bound bandpass filter
 % draws = number of draws, or trials, picked per FFT calculation
 % repeats = number of times to compute FFT
-% totalSweeps = number of sweeps in the response (e.g. 7500)
 % chunks = number of chunks needed to analyze (e.g. total is 7500 nReps, but
 %   you want to analyze 1500 nReps at a time, starting with 1-1500, then
 %   1501-3000 etc., chunks would be set to 5)
 % s_epoch = start time of an epoch
 % e_epoch = end time of an epoch (typically its duration)
 % prestim = duration of prestimulus silence
-% F0, F1, F2, F3, F4 = frequencies for which spectral magnitude is to be
-%   computed 
 
 %% Version
 % Version 1 - September 2017
@@ -69,33 +73,36 @@ function RapidEFR_analysis(fileDir, listener, trigTiming, replacement, totalSwee
 order = 2; % butterworth filter order
 artefact = 25; % epochs containing values exceeding +/- this value (in uV) are
 % considered artefacts and removed from the set of epochs
+tube_delay = 1; % time it takes for sound to travel along the tubing of the insert earphones (in ms), this is added to the prestim
+trigger_artefact_window = 2; % period affected by trigger artefact (in ms), this is excluded from the baseline and epoch
 
 % if certain arguments are not specified, set them to their default value
-if nargin <16
+if nargin <20
     prestim = 0;
 end
-if nargin<14
-    s_epoch = 1; % I think this should be 1, not 0
+if nargin<18
+    s_epoch = 0;
     e_epoch = 1000*(1/F0);
 end
-if nargin<13
+if nargin<17
     chunks = 1;
 end
-if nargin<12
+if nargin<16
     repeats = 1;
 end
-if nargin<11
+if nargin<15
     draws = totalSweeps;
 end
-if nargin<7
+if nargin<13
+    Lcut_off = 70;
+    Hcut_off = 2000;
+end
+if nargin<9
     F1 = 2*F0;
     F2 = 3*F0;
     F3 = 4*F0;
     F4 = 5*F0;
 end
-
-% adjust prestim taking tube delay into account
-prestim = (prestim + tube_delay) - trigger_artefact_window; % compute prestim duration
 
 % convert epoch start and end times to seconds
 s_epoch_s = s_epoch/1000;
@@ -125,10 +132,10 @@ if ~WriteHeader
 end
 
 % construct the output data file name
-outfile = ['', OutputDir,'\',listener '_EFR.csv', ''];
+outputfile = ['', OutputDir,'\',listener '_EFR.csv', ''];
 % write some headings and preliminary information to the output file
-if ~exist(outfile)
-    fout = fopen(outfile, 'at');
+if ~exist(outputfile)
+    fout = fopen(outputfile, 'at');
     fprintf(fout, 'file,listener,triggers,repeats,repetition,sweeps,chunk,Freq1,Freq2,Freq3,Freq4,Freq5,rms\n');
     fclose(fout);
 end
@@ -154,7 +161,8 @@ for i=1:nFiles(1)
         % load bdf file, extract only active and reference channel, reference data, and save as EEG data set
         POS = pop_biosig((fullfile(fileDirectory,fileName)), 'channels', [Act Ref],'ref',reref,'blockepoch','off','refoptions',{'keepref','off'});
         
-        trimmedFileName = regexprep(fileName, 'pos_', ''); % filename without polarity indication for naming of result files
+        trimmedFN = regexprep(fileName, 'pos_', ''); % filename without polarity indication for naming of result files
+        trimmedFileName = regexprep(trimmedFN, '.bdf', ''); % remove file extension
         
         % find matching file with negative polarity
         NegFile = regexprep(fileName, 'pos', 'neg');
@@ -166,29 +174,10 @@ for i=1:nFiles(1)
             % filter based on filtfilt (so effectively zero phase shift)
             POS.data = butter_filtfilt(POS.data, Lcut_off, Hcut_off, order);
             NEG.data = butter_filtfilt(NEG.data, Lcut_off, Hcut_off, order);
-                    
-            % save data plus initial trigger as .mat file
-            for j = 1:2 % loop through polarities
-                if j == 1
-                    EEGwave = POS;
-                    fName = fileName;
-                else
-                    EEGwave = NEG;
-                    fName = NegFile;
-                end
-                for k = 2:length(EEGwave.event)
-                    triggerLocation = EEGwave.event(:,k).latency;
-                    trigg = zeros(1,length(EEGwave.data));
-                    trigg(triggerLocation) = 1;
-                end
-                
-                ffr=[EEGwave.data;trigg];
-                ffr=ffr';
-                save(['',OutputDir,'\',fName,'.mat',''],'ffr')
-            end
             
-            %% resample the signal if necessary
-            whatF0
+%             %% Check whether the F0 of the EEG signal is what it should be and resample the signal if necessary
+%             [a, b, totalSweeps] =  whatF0(POS,fileName, OutputDir, F0, prestim, totalSweeps);
+%             [NEG.data, NEG.event.latency, totalSweeps] =  whatF0(NEG,fileName, OutputDir, F0, prestim, totalSweeps);
             
             %% If desired, analyze chunks of the EEG signal one by one (shifting by a
             % certain number of sweeps). If chunks == 1, the whole EEG
@@ -216,7 +205,7 @@ for i=1:nFiles(1)
                         EEG.event = create_triggers(EEG, draws, trigTiming, startSweep, endSweep, s_epoch_s,e_epoch_s, prestim_s);
                         
                         %% epoch the data - sampling with or without replacement
-                        epoch = epochEEG(EEG,draws,replacement);                        
+                        epoch = epochEEG(EEG,draws,s_epoch_s,e_epoch_s,replacement);                        
                         
                         %% artefact rejection: remove epochs that exceed +/- a given threshold
                         [epoch, accepted, rejected] = rejectArtefacts(epoch, draws,artefact);
@@ -252,7 +241,7 @@ for i=1:nFiles(1)
                     sigrms = rms(add');
                     
                     % compute and plot FFT
-                    [fftFFR, HzScale] = myFFT(add,NEG.srate,trimmedFileName);
+                    [fftFFR, HzScale] = myFFT(add,NEG.srate,1,trimmedFileName);
                     % save figure
                     saveas(gcf,['', OutputDir, '\', trimmedFileName,'_FFT', ''],'fig');
                     
@@ -274,7 +263,7 @@ for i=1:nFiles(1)
                     Freq5 = fftFFR(FreqInd);
                     
                     % print out relevant information
-                    fout = fopen(outfile, 'at');
+                    fout = fopen(outputfile, 'at');
                     fprintf(fout, '%s,%s,,%s,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d\n', ...
                         trimmedFileName,listener,char(trigTiming),repeats,l,draws,m,Freq1,Freq2,Freq3,Freq4,Freq5,sigrms);
                     fclose(fout);
@@ -287,7 +276,7 @@ for i=1:nFiles(1)
     end
 end
 
+fprintf('%s%s','Finished analysing EFR data for: ',listener)
+
 close all
 clear all
-
-fprintf('%s%s','Finished analysing EFR data for: ',listener)
