@@ -264,7 +264,7 @@ for i=1:nFiles(1)
                     
                     % print out relevant information
                     fout = fopen(outputfile, 'at');
-                    fprintf(fout, '%s,%s,,%s,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d\n', ...
+                    fprintf(fout, '%s,%s,%s,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d\n', ...
                         trimmedFileName,listener,char(trigTiming),repeats,l,draws,m,Freq1,Freq2,Freq3,Freq4,Freq5,sigrms);
                     fclose(fout);
                     
