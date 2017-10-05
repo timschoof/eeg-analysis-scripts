@@ -2,42 +2,42 @@ function RapidEFR_analysis(fileDir, listener, Active, Reference,trigTiming, repl
 % EFR analysis script
 %
 % The script only reads in two channels. It assumes that the EEG data file only has a
-% trigger at the start of the recording. 
+% trigger at the start of the recording.
 
 % The script assumes that the data is organised in folders for each participant separately.
 % It only analyses added (not subtracted) polarities (i.e. EFR). It computes
 % response's rms and spectral magnitudes at six specified frequencies.
 
-% The timing of the triggers can be either phaselocked to the stimulus (i.e. spaced with equal 
+% The timing of the triggers can be either phaselocked to the stimulus (i.e. spaced with equal
 %   time intervals) or randomly placed. When triggers are phaselocked, you will obtain an EFR.
 %   When triggers are placed randomly, you will only get noise. This is used to compute the noise floor of the outcome measures.
 
-% Especially when computing the noise floor you may want to obtain a 
+% Especially when computing the noise floor you may want to obtain a
 %   distribution of the outcome measures. You can repeat the calculation
-%   multiple times. 
+%   multiple times.
 
 % When epoching the data, you can sample epochs with and without
 %   replacement. When sampling with replacement, it is likely that some
 %   epochs of data are picked more than once and other epochs are never
 %   picked. When sampling with replacement, you probably want to obtain a
-%   distribution of the outcome measures. 
+%   distribution of the outcome measures.
 
-% If you're interested in only analysing a subsection of the response, 
+% If you're interested in only analysing a subsection of the response,
 %   or if you want to see how the response changes over time, you can analyse
-%   the response in chunks. 
+%   the response in chunks.
 
 %% Parameters
 % fileDir = file directory with .bdf files
 % listener = participant id
 % Active - active electrode (EXG1, EXG2, or EXG3)
 % Reference - reference electrode (EXG2, EXG3, or EXG4)
-% trigTiming = the timing or location of the triggers: 'phaselocked' to the stimulus 
+% trigTiming = the timing or location of the triggers: 'phaselocked' to the stimulus
 %   F0 cycles (to compute EFR or signal's response) or 'random' (to compute
 %   noise floor)
 % replacement = sampling 'with' or 'without' replacement
 % totalSweeps = number of sweeps in the response (e.g. 7500)
 % F0, F1, F2, F3, F4 = frequencies for which spectral magnitude is to be
-%   computed 
+%   computed
 % Lcut_off - lower bound bandpass filter
 % Hcut_off - upper bound bandpass filter
 % draws = number of draws, or trials, picked per FFT calculation
@@ -179,10 +179,21 @@ for i=1:nFiles(1)
 %             [a, b, totalSweeps] =  whatF0(POS,fileName, OutputDir, F0, prestim, totalSweeps);
 %             [NEG.data, NEG.event.latency, totalSweeps] =  whatF0(NEG,fileName, OutputDir, F0, prestim, totalSweeps);
             
+            %% Plot FFT of the whole response, before epoching, artefact rejection, and averaging
+            % select FFR
+            posWhole = POS.data(POS.event(2).latency: POS.event(2).latency + (totalSweeps*(1/F0)*POS.srate));
+            negWhole = NEG.data(NEG.event(2).latency: NEG.event(2).latency + (totalSweeps*(1/F0)*NEG.srate));
+            % add polarities
+            addWhole = (posWhole + negWhole)/2;
+            % FFT
+            myFFT(addWhole,NEG.srate,1,['', trimmedFileName,' ', num2str(totalSweeps), ' nReps - ', num2str(F0),' Hz - added polarities']);
+            % save figure
+            saveas(gcf,['', OutputDir, '\', trimmedFileName,'_wholeResponse_FFT', ''],'fig');
+            
             %% If desired, analyze chunks of the EEG signal one by one (shifting by a
             % certain number of sweeps). If chunks == 1, the whole EEG
             % signal will be analysed in one go
-            for m = 1:chunks 
+            for m = 1:chunks
                 % determine the start and end point of the triggers (this
                 % is particularly relevant when analyzing chunks of the EEG
                 % signal one by one because the start and end points will
@@ -193,7 +204,7 @@ for i=1:nFiles(1)
                 % the response measures)
                 for l = 1:repeats
                     % loop through positive and negative polarities
-                    for jj = 1:2 
+                    for jj = 1:2
                         if jj == 1
                             EEG = POS;
                         elseif jj == 2
@@ -205,7 +216,7 @@ for i=1:nFiles(1)
                         EEG.event = create_triggers(EEG, draws, trigTiming, startSweep, endSweep, s_epoch_s,e_epoch_s, prestim_s);
                         
                         %% epoch the data - sampling with or without replacement
-                        epoch = epochEEG(EEG,draws,s_epoch_s,e_epoch_s,replacement);                        
+                        epoch = epochEEG(EEG,draws,s_epoch_s,e_epoch_s,replacement);
                         
                         %% artefact rejection: remove epochs that exceed +/- a given threshold
                         [epoch, accepted, rejected] = rejectArtefacts(epoch, draws,artefact);
