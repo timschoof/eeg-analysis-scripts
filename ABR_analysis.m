@@ -8,7 +8,7 @@ function ABR_analysis(fileDir, listener,Active, Reference,epoch_dur, prestim, Lc
 % Active - active electrode (EXG1, EXG2, or EXG3)
 % Reference - reference electrode (EXG2, EXG3, or EXG4)
 % considered artefacts and removed from the set of epochs
-% epoch_dur - duration (in ms) of epoch
+% epoch_dur - duration (in ms) of epoch (excluding the prestim)
 % prestim - duration of the baseline (i.e. end time (in ms) of pre-stim)
 % Lcut_off - lower bound bandpass filter
 % Hcut_off - upper bound bandpass filter
@@ -31,6 +31,10 @@ function ABR_analysis(fileDir, listener,Active, Reference,epoch_dur, prestim, Lc
 % Version 2 - August 2017
 %   Script no longer relies heavily on eeglab - only uses it to read in BDF
 %   file and re-reference the data.
+%
+% Version 2.2 - October 2017
+%   Plot gray shaded area around the response representing the standard
+%   error of the mean (SEM)
 %
 % Dependencies:
 %  * eeglab
@@ -130,10 +134,19 @@ for i=1:nFiles(1)
     % average across epochs
     avg = mean(epoch_corrected,1);
     
-    % plot averaged response
+    % compute standard error of the mean across epochs for plotting
+    SEM = std(epoch_corrected,1)/sqrt(accepted);
+    
+    % plot averaged response +/- standard error of the mean
     figure('color','white')
     s = (length(avg)/EEG.srate)*1000;
     t = (0:(s/(length(avg)-1)):s);
+    % plot gray shaded area mean +/- standard error of the mean
+    t2 = [t, fliplr(t)];
+    inBetween = [avg+SEM, fliplr(avg-SEM)];
+    fill(t2, inBetween, [0.8,0.8,0.8], 'LineStyle','none');
+    hold on
+    % plot averaged response
     p = plot(t,avg);
     set(0, 'DefaulttextInterpreter', 'none')
     title(['', name, '']);
