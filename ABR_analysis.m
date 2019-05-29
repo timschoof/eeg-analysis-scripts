@@ -81,7 +81,7 @@ prestim_s = prestim/1000;
 
 %% specify file directory - assumes data for every participant is in a
 % separate subfolder within the specified file directory
-fileDirectory = [fileDir '\' listener];
+fileDirectory = [fileDir, '\', listener];
 % get a list of BDF files
 Files = dir(fullfile(fileDirectory, '*.bdf'));
 nFiles = size(Files);

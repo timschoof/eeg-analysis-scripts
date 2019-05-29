@@ -20,7 +20,7 @@ sweepLength = round((e_epoch_s-s_epoch_s)*EEGdata.srate);
 epoch=zeros((nSweeps),sweepLength);
 
 %% loop through the number of sweeps to be epoched
-for n = 1:nSweeps
+for n = 2:nSweeps+1
     % sample with or without replacement
     if strcmp(replacement,'with') % with replacement
         perm = randperm(nSweeps);
@@ -29,7 +29,7 @@ for n = 1:nSweeps
         perm = n;
     end
     % determine starting point of the epoch
-    startLat = round(EEGdata.event(1,perm).latency);
+    startLat = round(EEGdata.event(1,perm).latency+(s_epoch_s*EEGdata.srate));
     % epoch
-    epoch(n,:) = EEGdata.data(startLat:startLat+sweepLength-1);
+    epoch(n-1,:) = EEGdata.data(startLat:startLat+sweepLength-1);
 end
