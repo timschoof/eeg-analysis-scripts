@@ -254,44 +254,44 @@ for i=1:nFiles(1)
             % Compute spectral mangitudes
             % Freq1
             FreqInd = find(HzScale==F0,1);
-            Freq1 = dBfft(FreqInd);
+            Freq1 = fftFFR(FreqInd);
             % Freq2
             FreqInd = find(HzScale==F1,1);
-            Freq2 = dBfft(FreqInd);
+            Freq2 = fftFFR(FreqInd);
             % Freq3
             FreqInd = find(HzScale==F2,1);
-            Freq3 = dBfft(FreqInd);
+            Freq3 = fftFFR(FreqInd);
             % Freq4
             FreqInd = find(HzScale==F3,1);
-            Freq4 = dBfft(FreqInd);
+            Freq4 = fftFFR(FreqInd);
             
             % Noise floor around Freq1
             FreqInd_lo_bottom = find(HzScale==F0-nzFloorBuffer-nzFloorWidth,1);
             FreqInd_hi_bottom = find(HzScale==F0-nzFloorBuffer,1);
             FreqInd_lo_top = find(HzScale==F0+nzFloorBuffer,1);
             FreqInd_hi_top = find(HzScale==F0+nzFloorBuffer+nzFloorWidth,1);
-            Freq1_nz = mean([dBfft(FreqInd_lo_bottom:FreqInd_hi_bottom) dBfft(FreqInd_lo_top:FreqInd_hi_top)]);
+            Freq1_nz = mean([fftFFR(FreqInd_lo_bottom:FreqInd_hi_bottom) fftFFR(FreqInd_lo_top:FreqInd_hi_top)]);
             
             % Noise floor around Freq2
             FreqInd_lo_bottom = find(HzScale==F1-nzFloorBuffer-nzFloorWidth,1);
             FreqInd_hi_bottom = find(HzScale==F1-nzFloorBuffer,1);
             FreqInd_lo_top = find(HzScale==F1+nzFloorBuffer,1);
             FreqInd_hi_top = find(HzScale==F1+nzFloorBuffer+nzFloorWidth,1);
-            Freq2_nz = mean([dBfft(FreqInd_lo_bottom:FreqInd_hi_bottom) dBfft(FreqInd_lo_top:FreqInd_hi_top)]);
+            Freq2_nz = mean([fftFFR(FreqInd_lo_bottom:FreqInd_hi_bottom) fftFFR(FreqInd_lo_top:FreqInd_hi_top)]);
             
             % Noise floor around Freq3
             FreqInd_lo_bottom = find(HzScale==F2-nzFloorBuffer-nzFloorWidth,1);
             FreqInd_hi_bottom = find(HzScale==F2-nzFloorBuffer,1);
             FreqInd_lo_top = find(HzScale==F2+nzFloorBuffer,1);
             FreqInd_hi_top = find(HzScale==F2+nzFloorBuffer+nzFloorWidth,1);
-            Freq3_nz = mean([dBfft(FreqInd_lo_bottom:FreqInd_hi_bottom) dBfft(FreqInd_lo_top:FreqInd_hi_top)]);
+            Freq3_nz = mean([fftFFR(FreqInd_lo_bottom:FreqInd_hi_bottom) fftFFR(FreqInd_lo_top:FreqInd_hi_top)]);
             
             % Noise floor around Freq4
             FreqInd_lo_bottom = find(HzScale==F3-nzFloorBuffer-nzFloorWidth,1);
             FreqInd_hi_bottom = find(HzScale==F3-nzFloorBuffer,1);
             FreqInd_lo_top = find(HzScale==F3+nzFloorBuffer,1);
             FreqInd_hi_top = find(HzScale==F3+nzFloorBuffer+nzFloorWidth,1);
-            Freq4_nz = mean([dBfft(FreqInd_lo_bottom:FreqInd_hi_bottom) dBfft(FreqInd_lo_top:FreqInd_hi_top)]);
+            Freq4_nz = mean([fftFFR(FreqInd_lo_bottom:FreqInd_hi_bottom) fftFFR(FreqInd_lo_top:FreqInd_hi_top)]);
             
             % print out relevant information
             fout = fopen(outputfile, 'at');
