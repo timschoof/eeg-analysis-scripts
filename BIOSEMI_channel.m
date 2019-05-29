@@ -23,7 +23,7 @@ elseif strcmp(Active, 'A32')
 elseif strcmp(Active,'EXG5')
     Act = 37;
 else
-    error('ERROR: Your active electrode should be EXG1, EXG2, or EXG3')
+    error('ERROR: Your active electrode is not specified in BIOSEMI_channel.m')
 end
 
 %% specify reference channel
@@ -41,23 +41,34 @@ elseif strcmp(Reference, 'EXG1+2')
     Ref = [33 34];
 elseif strcmp(Reference, 'EXG3+4')
     Ref = [35 36];
+elseif strcmp(Reference, 'EXG5+6')
+    Ref = [37 38];
 else
-    error('ERROR: Your reference electrode should be EXG1, EXG2, EXG3, EXG4, or EXG5')
+    error('ERROR: Your reference electrode is not specified in BIOSEMI_channel.m')
 end
 
 %% recodes reference channel for re-referencing
 if Act == Ref
     error('ERROR: Your reference electrode and active electrode cannot be the same')
-elseif Ref(1) == 33 && Ref(2) == 34 && Act < Ref(1)
-    reref = [2 3];
-elseif Ref(1) == 33 && Ref(2) == 34 && Act > Ref(1)
-    reref = [1 2];
-elseif Ref(1) == 35 && Ref(2) == 36 && Act < Ref(1)
-    reref = [2 3];
-elseif Ref(1) == 35 && Ref(2) == 36 && Act > Ref(1)
-    reref = [1 2];
-elseif Act < Ref
-    reref = 2;
-elseif Act > Ref
-    reref = 1;
+end
+if size(Ref,2) == 2
+    if Ref(1) == 33 && Ref(2) == 34 && Act < Ref(1)
+        reref = [2 3];
+    elseif Ref(1) == 33 && Ref(2) == 34 && Act > Ref(1)
+        reref = [1 2];
+    elseif Ref(1) == 35 && Ref(2) == 36 && Act < Ref(1)
+        reref = [2 3];
+    elseif Ref(1) == 35 && Ref(2) == 36 && Act > Ref(1)
+        reref = [1 2];
+    elseif Ref(1) == 37 && Ref(2) == 38 && Act < Ref(1)
+        reref = [2 3];
+    elseif Ref(1) == 37 && Ref(2) == 38 && Act > Ref(1)
+        reref = [1 2];
+    end
+else
+    if Act < Ref
+        reref = 2;
+    elseif Act > Ref
+        reref = 1;
+    end
 end

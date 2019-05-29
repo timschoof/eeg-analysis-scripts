@@ -1,6 +1,6 @@
 # EEG analysis scripts
 
-The main scripts are ABR_analysis and RapidEFR_analysis.
+The main scripts are ABR_analysis and StandardEFR_analysis.
 
 The scripts depend on the EEGLAB toolbox to read in BioSemi .bdf files. 
 

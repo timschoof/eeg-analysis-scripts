@@ -1,6 +1,6 @@
 function ABR_analysis(fileDir, listener,Active, Reference,epoch_dur, prestim, Lcut_off, Hcut_off, artefact)
 % Click ABR analysis script
-% Only reads in two channels.
+% Only reads in two or three channels.
 % Assumes data is organised in folders for each participant separately.
 
 %% parameters
@@ -54,7 +54,7 @@ function ABR_analysis(fileDir, listener,Active, Reference,epoch_dur, prestim, Lc
 
 %% some starting values
 order = 2; % butterworth filter order
-tube_delay = 1; % time it takes for sound to travel along the tubing of the insert earphones (in ms), this is added to the prestim
+tube_delay = 1; % time it takes for sound to travel along the tubing of the insert earphones (in ms), this is added to the prestim (measured 4 July 2018)
 trigger_artefact_window = 2; % period affected by trigger artefact (in ms), this is excluded from the baseline and epoch
 
 % if certain arguments are not specified, set them to their default value
@@ -148,6 +148,7 @@ for i=1:nFiles(1)
     hold on
     % plot averaged response
     p = plot(t,avg);
+    ylim([-0.5, 0.5]);
     set(0, 'DefaulttextInterpreter', 'none')
     title(['', name, '']);
     xlabel('ms');

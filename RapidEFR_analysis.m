@@ -1,7 +1,7 @@
 function RapidEFR_analysis(fileDir, listener, Active, Reference,trigTiming, replacement, totalSweeps, F0, F1, F2, F3, F4, Lcut_off, Hcut_off, draws, repeats, chunks, s_epoch, e_epoch, prestim)
 % EFR analysis script
 %
-% The script only reads in two channels. It assumes that the EEG data file only has a
+% The script only reads in two or three channels. It assumes that the EEG data file only has a
 % trigger at the start of the recording.
 
 % The script assumes that the data is organised in folders for each participant separately.
