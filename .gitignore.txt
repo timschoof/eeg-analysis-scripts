@@ -1,2 +1,0 @@
-# ignore files and folders
-/eeglab14_1_1b
