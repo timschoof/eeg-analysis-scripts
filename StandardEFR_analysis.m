@@ -285,6 +285,8 @@ for i=1:nFiles(1)
             EFR = add(LAG_samp:LAG_samp+length(stimulus)-1);
         else
             EFR = add;
+            LAG_ms = NaN;
+            SRcorr = NaN;
         end
         %% Compute rms and FFT & save away results
         % rms
