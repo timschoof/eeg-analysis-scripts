@@ -14,8 +14,8 @@ function goHHL(listener)
 
 % EFR
 resultsDir = 'D:\HHL\EFR';
-% signal
-% StandardEFR_analysis(fileDir, listener,Active, Reference,epoch_dur, prestim_dur, Lcut_off, Hcut_off, artefact, F0, F1, F2, F3, nzFloorBuffer, nzFloorWidth,rmTrig, window)
-StandardEFR_analysis(resultsDir, listener,'EXG1','EXG2',1000*(10/176), 40, 120, 2000, 25, 176,2*176,3*176,4*176,3,13,'T','signal') % 'EXG3+4'
+% % signal
+% % StandardEFR_analysis(fileDir, listener,Active, Reference,epoch_dur, prestim_dur, Lcut_off, Hcut_off, artefact, F0, F1, F2, F3, nzFloorBuffer, nzFloorWidth,rmTrig, window)
+% StandardEFR_analysis(resultsDir, listener,'EXG1','EXG2',(1000*(10/176))+12, 40, 120, 2000, 25, 176,2*176,3*176,4*176,3,13,'T','signal') % 'EXG3+4'
 %noise floor
 StandardEFR_analysis(resultsDir, listener,'EXG1','EXG2',40, 0, 120, 2000, 25, 176,2*176,3*176,4*176,0,10,'T','noise') % 'EXG3+4'

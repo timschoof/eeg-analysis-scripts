@@ -1,4 +1,4 @@
-function grandAverageABR(fileDirectory)
+function grandAverageABR(fileDirectory, group, excludeFile)
 % Horizontal montage: EXG3 – EXG4 for click ABR wave I
 % Vertical montage: EXG1 – EXG3 for click ABR wave V
 
@@ -15,8 +15,27 @@ counterV105 = 0;
 counterV115 = 0;
 
 % get a list of files
-Files = dir(fullfile(fileDirectory, '*.mat'));
+Files = dir(fullfile(fileDirectory, [group,'*.mat']));
 nFiles = size(Files);
+
+% exclude files that are in the noise floor
+if nargin>2
+    excl = robustcsvread(fullfile(fileDirectory,excludeFile));
+    cntr = 0;
+    
+    for i=1:nFiles(1)
+        fileName = Files(i).name;
+        newStr = erase(fileName,'.mat');
+        for j=1:length(excl)
+            if strcmp(newStr, char(excl{j}))
+                cntr = cntr + 1;
+                excludeRows(cntr) = i;
+            end
+        end
+    end
+    Files(flip(excludeRows)) = [];
+    nFiles = size(Files);
+end
 
 % loop through all the files in the directory
 for i=1:nFiles(1)
@@ -79,27 +98,28 @@ figure('color','white')
 s = (length(avg)/Fs)*1000;
 t = (0:(s/(length(avg)-1)):s);
 % for wave I
-p = plot(t,avgWaveI95); set(p,'color','black'); hold on
-q = plot(t,avgWaveI105); set(q,'color','blue'); hold on
-r = plot(t,avgWaveI115); set(r,'color','red');
+p = plot(t,avgWaveI95); set(p,'LineWidth',2); hold on
+q = plot(t,avgWaveI105); set(q,'LineWidth',2); hold on
+r = plot(t,avgWaveI115); set(r,'LineWidth',2);
 xlabel('ms');
 ylabel('uV')
 legend('95 dB peSPL','105 dB peSPL','115 dB peSPL')
 % save figure
-saveas(gcf,['',fileDirectory, '\ABR_grandAverage_horizontal',''],'fig');
+saveas(gcf,['',fileDirectory, '\ABR_grandAverage_horizontal_',group,''],'fig');
+saveas(gcf,['',fileDirectory, '\ABR_grandAverage_horizontal_',group,''],'tiff');
 %for wave V
 figure('color','white')
-p = plot(t,avgWaveV95); set(p,'color','black'); hold on
-q = plot(t,avgWaveV105); set(q,'color','blue'); hold on
-r = plot(t,avgWaveV115); set(r,'color','red');
+p = plot(t,avgWaveV95); set(p,'LineWidth',2); hold on
+q = plot(t,avgWaveV105); set(q,'LineWidth',2); hold on
+r = plot(t,avgWaveV115); set(r,'LineWidth',2);
 xlabel('ms');
 ylabel('uV')
 legend('95 dB peSPL','105 dB peSPL','115 dB peSPL')
 % save figure
-saveas(gcf,['',fileDirectory, '\ABR_grandAverage_vertical',''],'fig');
-
+saveas(gcf,['',fileDirectory, '\ABR_grandAverage_vertical_',group,''],'fig');
+saveas(gcf,['',fileDirectory, '\ABR_grandAverage_vertical_',group,''],'tiff');
                 
-
+close all
 
 
 

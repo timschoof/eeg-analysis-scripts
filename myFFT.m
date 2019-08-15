@@ -13,7 +13,6 @@ end
 
 % zero-pad data to one second
 data = [data, zeros(1,Fs-length(data))];
-% data = [data, zeros(1,length(data))];
 
 % compute FFT
 L=length(data);
