@@ -294,7 +294,7 @@ for i=1:nFiles(1)
         figure
         [fftFFR, HzScale, dBfft] = myFFT(EFR,EEG.srate,1,trimmedFileName);
         % save figure
-        saveas(gcf,['', OutputDir, '\', name,'_',window,'_FFT', ''],'fig');
+        saveas(gcf,['', OutputDir, '\', trimmedFileName,'_',window,'_FFT', ''],'fig');
         
         % Compute spectral mangitudes
         % Freq1
@@ -341,7 +341,7 @@ for i=1:nFiles(1)
         % print out relevant information
         fout = fopen(outputfile, 'at');
         fprintf(fout, '%s,%s,%s,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d\n', ...
-            name,listener,window,Freq1,Freq2,Freq3,Freq4,Freq1_nz,Freq2_nz,Freq3_nz,Freq4_nz,sigrms, LAG_ms, SRcorr);
+            trimmedFileName,listener,window,Freq1,Freq2,Freq3,Freq4,Freq1_nz,Freq2_nz,Freq3_nz,Freq4_nz,sigrms, LAG_ms, SRcorr);
         fclose(fout);
         
         % clear all
