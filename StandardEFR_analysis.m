@@ -292,7 +292,7 @@ for i=1:nFiles(1)
         
         % compute and plot FFT
         figure
-        [fftFFR, HzScale, dBfft] = myFFT(EFR,EEG.srate,1,trimmedFileName);
+        [fftFFR, HzScale, dBfft] = myFFT(EFR,EEG.srate,1,name);
         % save figure
         saveas(gcf,['', OutputDir, '\', name,'_',window,'_FFT', ''],'fig');
         
